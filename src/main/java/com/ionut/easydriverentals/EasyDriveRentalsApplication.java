@@ -9,5 +9,4 @@ public class EasyDriveRentalsApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(EasyDriveRentalsApplication.class, args);
 	}
-
 }
