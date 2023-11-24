@@ -24,7 +24,7 @@ public class ClientDetails {
     @Column(name = "block")
     private String block;
     @Column(name = "stair")
-    private char stair;
+    private String stair;
     @Column(name = "floor")
     private int floor;
     @Column(name = "apartment")

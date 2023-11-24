@@ -30,9 +30,9 @@ public class Client {
 
     @ManyToMany
     @JoinTable(
-            name = "history_of_rentals",
-            joinColumns = @JoinColumn(name = "user_id"),
+            name = "client_favorite_cars",
+            joinColumns = @JoinColumn(name = "client_id"),
             inverseJoinColumns = @JoinColumn(name = "car_id")
     )
-    private List<Car> historyOfRentals = new ArrayList<>();
+    private List<Car> clientFavoriteCars= new ArrayList<>();
 }

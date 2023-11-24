@@ -34,6 +34,6 @@ public class Car {
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<History> histories;
 
-    @ManyToMany(mappedBy = "historyOfRentals")
-    private List<Client> clientsWithRentals = new ArrayList<>();
+    @ManyToMany(mappedBy = "clientFavoriteCars")
+    private List<Client> clientsWithFavorite = new ArrayList<>();
 }
