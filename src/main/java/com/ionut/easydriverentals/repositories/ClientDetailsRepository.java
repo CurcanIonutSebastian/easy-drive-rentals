@@ -10,6 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 public interface ClientDetailsRepository extends JpaRepository<ClientDetails, Long> {
 
     @Modifying
-    @Query(value = "UPDATE client_details set client_id = :clientId WHERE client_id IS NULL", nativeQuery = true)
+    @Query(value = "UPDATE client_details set client_id = :clientId WHERE client_id IS NULL;", nativeQuery = true)
     void assignClientDetailsToClient(Long clientId);
 }

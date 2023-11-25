@@ -6,6 +6,7 @@ import com.ionut.easydriverentals.exceptions.EmptyInputException;
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
 import com.ionut.easydriverentals.models.dtos.ClientDetailsDTO;
 import com.ionut.easydriverentals.models.dtos.ClientResponseDTO;
+import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
 import com.ionut.easydriverentals.models.entities.Client;
 import com.ionut.easydriverentals.repositories.ClientRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,19 @@ public class ClientServiceImpl implements ClientService {
 
             clientResponseDTO.setClientDetails(clientDetailsDTO);
         }
+
+        clientResponseDTO.setClientHistory(client.getHistories().stream()
+                .map(history -> {
+                    HistoryClientResponseDTO historyClientResponseDTO = new HistoryClientResponseDTO();
+                    historyClientResponseDTO.setId(history.getId());
+                    historyClientResponseDTO.setCarId(history.getCar().getId());
+                    historyClientResponseDTO.setStartRentalDate(history.getStartRentalDate());
+                    historyClientResponseDTO.setEndRentalDate(history.getEndRentalDate());
+                    historyClientResponseDTO.setReturnedCar(history.getReturnedCar());
+                    historyClientResponseDTO.setUserHistoryStatus(history.getUserHistoryStatus());
+                    historyClientResponseDTO.setTotalPrice(history.getTotalPrice());
+                    return historyClientResponseDTO;
+                }).toList());
         return clientResponseDTO;
     }
 }

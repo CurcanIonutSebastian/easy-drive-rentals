@@ -46,10 +46,6 @@ public class ClientDetailsServiceImpl implements ClientDetailsService {
             throw new EmptyInputException("The fields phoneNumber, email, country, city, street must not be empty!");
         }
 
-//        if (clientDetailsDTO.getBlock().isEmpty()) {
-//            clientDetailsDTO.setBlock(null);
-//            clientDetailsDTO.setStair(null);
-//        }
         try {
             ClientDetails clientDetailsEntity = objectMapper.convertValue(clientDetailsDTO, ClientDetails.class);
             ClientDetails clientDetailsResponseEntity = clientDetailsRepository.save(clientDetailsEntity);
