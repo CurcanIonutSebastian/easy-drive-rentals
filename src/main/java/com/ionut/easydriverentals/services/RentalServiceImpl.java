@@ -11,14 +11,14 @@ import com.ionut.easydriverentals.repositories.CarRepository;
 import com.ionut.easydriverentals.repositories.ClientRepository;
 import com.ionut.easydriverentals.repositories.HistoryRepository;
 import com.ionut.easydriverentals.repositories.RentalRepository;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
@@ -26,15 +26,6 @@ public class RentalServiceImpl implements RentalService {
     private final ClientRepository clientRepository;
     private final CarRepository carRepository;
 
-    public RentalServiceImpl(RentalRepository rentalRepository,
-                             HistoryRepository historyRepository,
-                             ClientRepository clientRepository,
-                             CarRepository carRepository) {
-        this.rentalRepository = rentalRepository;
-        this.historyRepository = historyRepository;
-        this.clientRepository = clientRepository;
-        this.carRepository = carRepository;
-    }
 
     @Override
     public RentalResponseDTO createRental(Long clientId, Long carId, RentalDTO rentalDTO) {

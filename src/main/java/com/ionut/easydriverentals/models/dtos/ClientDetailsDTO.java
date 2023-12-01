@@ -1,10 +1,12 @@
 package com.ionut.easydriverentals.models.dtos;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@Builder
 public class ClientDetailsDTO implements Serializable {
 
     private Long id;

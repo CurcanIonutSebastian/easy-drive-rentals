@@ -1,89 +1,103 @@
 package com.ionut.easydriverentals.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ionut.easydriverentals.exceptions.DataExistsException;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
 import com.ionut.easydriverentals.exceptions.EmptyInputException;
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
 import com.ionut.easydriverentals.models.dtos.ClientDetailsDTO;
-import com.ionut.easydriverentals.models.dtos.ClientResponseDTO;
-import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
 import com.ionut.easydriverentals.models.entities.Client;
+import com.ionut.easydriverentals.models.entities.ClientDetails;
+import com.ionut.easydriverentals.repositories.ClientDetailsRepository;
 import com.ionut.easydriverentals.repositories.ClientRepository;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
-
+    private final ClientDetailsRepository clientDetailsRepository;
     private final ObjectMapper objectMapper;
-
-    public ClientServiceImpl(ClientRepository clientRepository, ObjectMapper objectMapper) {
-        this.clientRepository = clientRepository;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public ClientDTO createClient(ClientDTO clientDTO) {
         if (clientDTO.getFirstName().isEmpty() || clientDTO.getLastName().isEmpty()) {
             throw new EmptyInputException("Filed empty");
         }
+        try {
+            Client clientEntity = clientRepository.save(objectMapper.convertValue(clientDTO, Client.class));
+            ClientDetails clientDetailsEntity = clientDetailsRepository.save(objectMapper.convertValue(clientDTO.getClientDetailsDTO(), ClientDetails.class));
+            clientDetailsRepository.assignClientDetailsToClient(clientEntity.getId());
 
-        Client clientEntity = objectMapper.convertValue(clientDTO, Client.class);
-        Client clientResponseEntity = clientRepository.save(clientEntity);
-        return objectMapper.convertValue(clientResponseEntity, ClientDTO.class);
+            return ClientDTO.builder()
+                    .id(clientEntity.getId())
+                    .firstName(clientEntity.getFirstName())
+                    .lastName(clientEntity.getLastName())
+                    .clientDetailsDTO(ClientDetailsDTO.builder()
+                            .id(clientDetailsEntity.getId())
+                            .email(clientDetailsEntity.getEmail())
+                            .phoneNumber(clientDetailsEntity.getPhoneNumber())
+                            .country(clientDetailsEntity.getCountry())
+                            .city(clientDetailsEntity.getCity())
+                            .street(clientDetailsEntity.getStreet())
+                            .block(clientDetailsEntity.getBlock())
+                            .apartment(clientDetailsEntity.getApartment())
+                            .stair(clientDetailsEntity.getStair())
+                            .floor(clientDetailsEntity.getFloor())
+                            .build())
+                    .build();
+        } catch (DataIntegrityViolationException exception) {
+            throw new DataExistsException("Invalid email ore phone number!");
+        }
     }
 
     @Override
-    public ClientResponseDTO getClientById(Long id) {
+    public ClientDTO getClientById(Long id) {
         Optional<Client> clientOptional = clientRepository.findById(id);
         if (clientOptional.isEmpty()) {
             throw new DataNotFoundException("User does not exist!");
         }
 
         Client client = clientOptional.get();
-        return mapClientToClientResponseDTO(client);
+        return mapClientToClientDTO(client);
     }
 
-    private ClientResponseDTO mapClientToClientResponseDTO(Client client) {
-        ClientResponseDTO clientResponseDTO = new ClientResponseDTO();
-        ClientDetailsDTO clientDetailsDTO = new ClientDetailsDTO();
+    @Override
+    public List<ClientDTO> getAllClients() {
+        List<Client> clients = clientRepository.findAll();
+        return clients.stream().map(this::mapClientToClientDTO).toList();
+    }
 
-        clientResponseDTO.setId(client.getId());
-        clientResponseDTO.setFirstName(client.getFirstName());
-        clientResponseDTO.setLastName(client.getLastName());
+    private ClientDTO mapClientToClientDTO(Client client) {
+        return ClientDTO.builder()
+                .id(client.getId())
+                .firstName(client.getFirstName())
+                .lastName(client.getLastName())
+                .clientDetailsDTO(mapClientToClientDetailsDTO(client))
+                .build();
+    }
 
-        if (!(client.getClientDetails() == null)) {
-            clientDetailsDTO.setId(client.getClientDetails().getId());
-            clientDetailsDTO.setPhoneNumber(client.getClientDetails().getPhoneNumber());
-            clientDetailsDTO.setEmail(client.getClientDetails().getEmail());
-            clientDetailsDTO.setCountry(client.getClientDetails().getCountry());
-            clientDetailsDTO.setCity(client.getClientDetails().getCity());
-            clientDetailsDTO.setStreet(client.getClientDetails().getStreet());
-            clientDetailsDTO.setBlock(client.getClientDetails().getBlock());
-            clientDetailsDTO.setStair(client.getClientDetails().getStair());
-            clientDetailsDTO.setFloor(client.getClientDetails().getFloor());
-            clientDetailsDTO.setApartment(client.getClientDetails().getApartment());
-
-            clientResponseDTO.setClientDetails(clientDetailsDTO);
+    private ClientDetailsDTO mapClientToClientDetailsDTO(Client client) {
+        if (client.getClientDetails() == null) {
+            return null;
+        } else {
+            return ClientDetailsDTO.builder()
+                    .id(client.getClientDetails().getId())
+                    .email(client.getClientDetails().getEmail())
+                    .phoneNumber(client.getClientDetails().getPhoneNumber())
+                    .country(client.getClientDetails().getCountry())
+                    .city(client.getClientDetails().getCity())
+                    .street(client.getClientDetails().getStreet())
+                    .block(client.getClientDetails().getBlock())
+                    .stair(client.getClientDetails().getStair())
+                    .floor(client.getClientDetails().getFloor())
+                    .apartment(client.getClientDetails().getApartment()).build();
         }
-
-        clientResponseDTO.setClientHistory(client.getHistories().stream()
-                .map(history -> {
-                    HistoryClientResponseDTO historyClientResponseDTO = new HistoryClientResponseDTO();
-                    historyClientResponseDTO.setId(history.getId());
-                    historyClientResponseDTO.setCarId(history.getCar().getId());
-                    historyClientResponseDTO.setStartRentalDate(history.getStartRentalDate());
-                    historyClientResponseDTO.setEndRentalDate(history.getEndRentalDate());
-                    historyClientResponseDTO.setReturnedCar(history.getReturnedCar());
-                    historyClientResponseDTO.setUserHistoryStatus(history.getUserHistoryStatus());
-                    historyClientResponseDTO.setTotalPrice(history.getTotalPrice());
-                    return historyClientResponseDTO;
-                }).toList());
-        return clientResponseDTO;
     }
 }

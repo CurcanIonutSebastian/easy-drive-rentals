@@ -34,5 +34,5 @@ public class Client {
             joinColumns = @JoinColumn(name = "client_id"),
             inverseJoinColumns = @JoinColumn(name = "car_id")
     )
-    private List<Car> clientFavoriteCars= new ArrayList<>();
+    private List<Car> clientFavoriteCars = new ArrayList<>();
 }

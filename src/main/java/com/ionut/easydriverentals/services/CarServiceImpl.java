@@ -6,21 +6,16 @@ import com.ionut.easydriverentals.exceptions.EmptyInputException;
 import com.ionut.easydriverentals.models.dtos.CarDTO;
 import com.ionut.easydriverentals.models.entities.Car;
 import com.ionut.easydriverentals.repositories.CarRepository;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
 
     private final CarRepository carRepository;
 
     private final ObjectMapper objectMapper;
-
-    public CarServiceImpl(CarRepository carRepository, ObjectMapper objectMapper) {
-        this.carRepository = carRepository;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public CarDTO createCar(CarDTO carDTO) {
