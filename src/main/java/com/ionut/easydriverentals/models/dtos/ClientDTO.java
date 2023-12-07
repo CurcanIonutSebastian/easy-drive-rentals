@@ -1,5 +1,6 @@
 package com.ionut.easydriverentals.models.dtos;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,7 +9,9 @@ import lombok.Data;
 public class ClientDTO {
 
     private Long id;
+    @NotBlank
     private String firstName;
+    @NotBlank
     private String lastName;
     private ClientDetailsDTO clientDetailsDTO;
 }

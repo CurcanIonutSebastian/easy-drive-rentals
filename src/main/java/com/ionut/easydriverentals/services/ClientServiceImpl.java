@@ -3,9 +3,9 @@ package com.ionut.easydriverentals.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ionut.easydriverentals.exceptions.DataExistsException;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
-import com.ionut.easydriverentals.exceptions.EmptyInputException;
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
 import com.ionut.easydriverentals.models.dtos.ClientDetailsDTO;
+import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
 import com.ionut.easydriverentals.models.entities.Client;
 import com.ionut.easydriverentals.models.entities.ClientDetails;
 import com.ionut.easydriverentals.repositories.ClientDetailsRepository;
@@ -27,9 +27,6 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDTO createClient(ClientDTO clientDTO) {
-        if (clientDTO.getFirstName().isEmpty() || clientDTO.getLastName().isEmpty()) {
-            throw new EmptyInputException("Filed empty");
-        }
         try {
             Client clientEntity = clientRepository.save(objectMapper.convertValue(clientDTO, Client.class));
             ClientDetails clientDetailsEntity = clientDetailsRepository.save(objectMapper.convertValue(clientDTO.getClientDetailsDTO(), ClientDetails.class));
@@ -61,7 +58,7 @@ public class ClientServiceImpl implements ClientService {
     public ClientDTO getClientById(Long id) {
         Optional<Client> clientOptional = clientRepository.findById(id);
         if (clientOptional.isEmpty()) {
-            throw new DataNotFoundException("User does not exist!");
+            throw new DataNotFoundException("Client does not exist!");
         }
 
         Client client = clientOptional.get();
@@ -72,6 +69,73 @@ public class ClientServiceImpl implements ClientService {
     public List<ClientDTO> getAllClients() {
         List<Client> clients = clientRepository.findAll();
         return clients.stream().map(this::mapClientToClientDTO).toList();
+    }
+
+    @Override
+    public ClientDTO editClientById(Long id, UpdateClientDTO updateClientDTO) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        try {
+            client.setFirstName(updateClientDTO.getFirstName() != null ? updateClientDTO.getFirstName() : client.getFirstName());
+            client.setLastName(updateClientDTO.getLastName() != null ? updateClientDTO.getLastName() : client.getLastName());
+            client.setClientDetails(updateClientDetails(updateClientDTO, client));
+
+            clientRepository.save(client);
+            return mapClientToClientDTO(client);
+        } catch (DataIntegrityViolationException e) {
+            throw new DataExistsException("Invalid email ore phone number!");
+        }
+    }
+
+    @Override
+    public String deleteClientById(Long id) {
+        if (clientRepository.existsById(id)) {
+            clientRepository.deleteById(id);
+            return "Client deleted successfully!";
+        } else {
+            throw new DataNotFoundException("Client does not exist!");
+        }
+    }
+
+    private static ClientDetails updateClientDetails(UpdateClientDTO newClientDTO, Client client) {
+        ClientDetails clientDetails = client.getClientDetails();
+
+        clientDetails.setEmail(newClientDTO.getUpdateClientDetailsDTO().getEmail() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getEmail() :
+                clientDetails.getEmail());
+
+        clientDetails.setPhoneNumber(newClientDTO.getUpdateClientDetailsDTO().getPhoneNumber() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getPhoneNumber() :
+                clientDetails.getPhoneNumber());
+
+        clientDetails.setCountry(newClientDTO.getUpdateClientDetailsDTO().getCountry() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getCountry() :
+                clientDetails.getCountry());
+
+        clientDetails.setCity(newClientDTO.getUpdateClientDetailsDTO().getCity() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getCity() :
+                clientDetails.getCity());
+
+        clientDetails.setStreet(newClientDTO.getUpdateClientDetailsDTO().getStreet() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getStreet() :
+                clientDetails.getStreet());
+
+        clientDetails.setBlock(newClientDTO.getUpdateClientDetailsDTO().getBlock() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getBlock() :
+                clientDetails.getBlock());
+
+        clientDetails.setStair(newClientDTO.getUpdateClientDetailsDTO().getStair() != null ?
+                newClientDTO.getUpdateClientDetailsDTO().getStair() :
+                clientDetails.getStair());
+
+        clientDetails.setFloor(newClientDTO.getUpdateClientDetailsDTO().getFloor() != 0 ?
+                newClientDTO.getUpdateClientDetailsDTO().getFloor() :
+                clientDetails.getFloor());
+
+        clientDetails.setApartment(newClientDTO.getUpdateClientDetailsDTO().getApartment() != 0 ?
+                newClientDTO.getUpdateClientDetailsDTO().getApartment() :
+                clientDetails.getApartment());
+
+        return clientDetails;
     }
 
     private ClientDTO mapClientToClientDTO(Client client) {
