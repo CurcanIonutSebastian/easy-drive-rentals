@@ -1,6 +1,7 @@
 package com.ionut.easydriverentals.models.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
@@ -11,14 +12,19 @@ public class ClientDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank
     @Column(name = "phone_number", unique = true)
-    private long phoneNumber;
+    private String phoneNumber;
+    @NotBlank
     @Column(name = "email", unique = true)
     private String email;
+    @NotBlank
     @Column(name = "country")
     private String country;
+    @NotBlank
     @Column(name = "city")
     private String city;
+    @NotBlank
     @Column(name = "street")
     private String street;
     @Column(name = "block")
@@ -30,7 +36,7 @@ public class ClientDetails {
     @Column(name = "apartment")
     private int apartment;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     private Client client;
 }

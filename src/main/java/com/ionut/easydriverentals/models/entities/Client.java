@@ -1,6 +1,7 @@
 package com.ionut.easydriverentals.models.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -14,12 +15,14 @@ public class Client {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank
     @Column(name = "first_name")
     private String firstName;
+    @NotBlank
     @Column(name = "last_name")
     private String lastName;
 
-    @OneToOne(mappedBy = "client")
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ClientDetails clientDetails;
 
     @OneToOne(mappedBy = "client")

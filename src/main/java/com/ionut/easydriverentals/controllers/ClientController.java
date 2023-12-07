@@ -1,6 +1,7 @@
 package com.ionut.easydriverentals.controllers;
 
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
+import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
 import com.ionut.easydriverentals.services.ClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +19,28 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    @PostMapping("/create-client")
+    @PostMapping
     public ResponseEntity<ClientDTO> createClient(@RequestBody @Valid ClientDTO clientDTO) {
         return ResponseEntity.ok(clientService.createClient(clientDTO));
     }
 
-    @GetMapping("{id}/get-client-by-id")
+    @GetMapping("/{id}")
     public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getClientById(id));
     }
 
-    @GetMapping("get-all-clients")
+    @GetMapping
     public ResponseEntity<List<ClientDTO>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientDTO> editClientById(@PathVariable Long id, @RequestBody UpdateClientDTO updateClientDTO) {
+        return ResponseEntity.ok(clientService.editClientById(id, updateClientDTO));
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteClientById(@PathVariable Long id) {
+        return ResponseEntity.ok(clientService.deleteClientById(id));
     }
 }
