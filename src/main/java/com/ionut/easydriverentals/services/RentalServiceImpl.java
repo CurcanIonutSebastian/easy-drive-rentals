@@ -1,5 +1,7 @@
 package com.ionut.easydriverentals.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ionut.easydriverentals.enums.CarStatus;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
 import com.ionut.easydriverentals.models.dtos.RentalDTO;
 import com.ionut.easydriverentals.models.dtos.RentalResponseDTO;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,6 +56,9 @@ public class RentalServiceImpl implements RentalService {
         rentalRepository.save(rentalEntity);
         rentalRepository.assignClientAndCarIdToRental(clientId, carId);
 
+        carEntity.setCarStatus(CarStatus.RENTED);
+        carRepository.save(carEntity);
+
         History historyEntity = new History();
         historyEntity.setStartRentalDate(rentalEntity.getStartRentalDate());
         historyEntity.setEndRentalDate(rentalEntity.getEndRentalDate());
@@ -62,13 +68,29 @@ public class RentalServiceImpl implements RentalService {
 
         historyRepository.save(historyEntity);
 
-        RentalResponseDTO rentalResponseDTO = new RentalResponseDTO();
-        rentalResponseDTO.setId(rentalEntity.getId());
-        rentalResponseDTO.setStartRentalDate(rentalEntity.getStartRentalDate());
-        rentalResponseDTO.setEndRentalDate(rentalEntity.getEndRentalDate());
-        rentalResponseDTO.setTotalPrice(rentalEntity.getTotalPrice());
-        rentalResponseDTO.setClientId(clientId);
-        rentalResponseDTO.setCarId(carId);
-        return rentalResponseDTO;
+        return RentalResponseDTO.builder()
+                .id(rentalEntity.getId())
+                .startRentalDate(rentalEntity.getStartRentalDate())
+                .endRentalDate(rentalEntity.getEndRentalDate())
+                .totalPrice(rentalEntity.getTotalPrice())
+                .clientId(clientId)
+                .carId(carId)
+                .build();
+    }
+
+    @Override
+    public List<RentalResponseDTO> getAllRentals() {
+        List<Rental> rentals = rentalRepository.findAll();
+        return rentals.stream().map(this::matRentalToRentalResponseDTO).toList();
+    }
+
+    private RentalResponseDTO matRentalToRentalResponseDTO(Rental rental) {
+        return RentalResponseDTO.builder()
+                .id(rental.getId())
+                .startRentalDate(rental.getStartRentalDate())
+                .endRentalDate(rental.getEndRentalDate())
+                .carId(rental.getCar().getId())
+                .clientId(rental.getClient().getId())
+                .build();
     }
 }
