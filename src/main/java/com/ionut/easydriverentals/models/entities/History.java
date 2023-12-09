@@ -1,7 +1,7 @@
 package com.ionut.easydriverentals.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.ionut.easydriverentals.enums.UserHistoryStatus;
+import com.ionut.easydriverentals.models.enums.UserHistoryStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 

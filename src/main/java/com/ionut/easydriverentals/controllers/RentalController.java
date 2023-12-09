@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -22,5 +24,10 @@ public class RentalController {
                                                           @PathVariable Long carId,
                                                           @RequestBody @Valid RentalDTO rentalDTO) {
         return ResponseEntity.ok(rentalService.createRental(clientId, carId, rentalDTO));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<RentalResponseDTO>> getAllRentals() {
+        return ResponseEntity.ok(rentalService.getAllRentals());
     }
 }

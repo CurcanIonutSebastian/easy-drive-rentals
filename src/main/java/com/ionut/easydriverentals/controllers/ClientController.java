@@ -1,6 +1,7 @@
 package com.ionut.easydriverentals.controllers;
 
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
+import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
 import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
 import com.ionut.easydriverentals.services.ClientService;
 import jakarta.validation.Valid;
@@ -32,6 +33,11 @@ public class ClientController {
     @GetMapping
     public ResponseEntity<List<ClientDTO>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
+    }
+
+    @GetMapping("/{id}/client-histories")
+    public ResponseEntity<List<HistoryClientResponseDTO>> getAllHistoryByClientId(@PathVariable Long id) {
+        return ResponseEntity.ok(clientService.getAllHistoryByClientId(id));
     }
 
     @PutMapping("/{id}")

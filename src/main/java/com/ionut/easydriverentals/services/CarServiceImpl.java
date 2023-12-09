@@ -1,7 +1,7 @@
 package com.ionut.easydriverentals.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ionut.easydriverentals.enums.CarStatus;
+import com.ionut.easydriverentals.models.enums.CarStatus;
 import com.ionut.easydriverentals.exceptions.EmptyInputException;
 import com.ionut.easydriverentals.models.dtos.CarDTO;
 import com.ionut.easydriverentals.models.entities.Car;
