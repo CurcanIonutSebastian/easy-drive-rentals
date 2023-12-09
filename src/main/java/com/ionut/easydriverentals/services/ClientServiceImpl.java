@@ -5,9 +5,11 @@ import com.ionut.easydriverentals.exceptions.DataExistsException;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
 import com.ionut.easydriverentals.models.dtos.ClientDTO;
 import com.ionut.easydriverentals.models.dtos.ClientDetailsDTO;
+import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
 import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
 import com.ionut.easydriverentals.models.entities.Client;
 import com.ionut.easydriverentals.models.entities.ClientDetails;
+import com.ionut.easydriverentals.models.entities.History;
 import com.ionut.easydriverentals.repositories.ClientDetailsRepository;
 import com.ionut.easydriverentals.repositories.ClientRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,6 +97,27 @@ public class ClientServiceImpl implements ClientService {
         } else {
             throw new DataNotFoundException("Client does not exist!");
         }
+    }
+
+    @Override
+    public List<HistoryClientResponseDTO> getAllHistoryByClientId(Long id) {
+        return clientRepository.findById(id)
+                .map(client -> client.getHistories().stream()
+                        .map(this::mapToHistoryClientResponseDTO)
+                        .collect(Collectors.toList()))
+                .orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+    }
+
+    private HistoryClientResponseDTO mapToHistoryClientResponseDTO(History history) {
+        return HistoryClientResponseDTO.builder()
+                .id(history.getId())
+                .carId(history.getCar().getId())
+                .startRentalDate(history.getStartRentalDate())
+                .endRentalDate(history.getEndRentalDate())
+                .returnedCar(history.getReturnedCar())
+                .userHistoryStatus(history.getUserHistoryStatus())
+                .totalPrice(history.getTotalPrice())
+                .build();
     }
 
     private static ClientDetails updateClientDetails(UpdateClientDTO newClientDTO, Client client) {

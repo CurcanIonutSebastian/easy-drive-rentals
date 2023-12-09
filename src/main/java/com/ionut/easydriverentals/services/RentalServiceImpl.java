@@ -1,7 +1,6 @@
 package com.ionut.easydriverentals.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ionut.easydriverentals.enums.CarStatus;
+import com.ionut.easydriverentals.models.enums.CarStatus;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
 import com.ionut.easydriverentals.models.dtos.RentalDTO;
 import com.ionut.easydriverentals.models.dtos.RentalResponseDTO;
@@ -89,6 +88,7 @@ public class RentalServiceImpl implements RentalService {
                 .id(rental.getId())
                 .startRentalDate(rental.getStartRentalDate())
                 .endRentalDate(rental.getEndRentalDate())
+                .totalPrice(rental.getTotalPrice())
                 .carId(rental.getCar().getId())
                 .clientId(rental.getClient().getId())
                 .build();

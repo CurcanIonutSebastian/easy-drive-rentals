@@ -1,11 +1,13 @@
 package com.ionut.easydriverentals.models.dtos;
 
-import com.ionut.easydriverentals.enums.UserHistoryStatus;
+import com.ionut.easydriverentals.models.enums.UserHistoryStatus;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
+@Builder
 public class HistoryClientResponseDTO {
 
     private Long id;

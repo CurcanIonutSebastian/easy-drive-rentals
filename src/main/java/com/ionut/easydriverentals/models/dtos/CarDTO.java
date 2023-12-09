@@ -1,6 +1,6 @@
 package com.ionut.easydriverentals.models.dtos;
 
-import com.ionut.easydriverentals.enums.CarStatus;
+import com.ionut.easydriverentals.models.enums.CarStatus;
 import lombok.Data;
 
 @Data

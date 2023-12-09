@@ -1,4 +1,4 @@
-package com.ionut.easydriverentals.enums;
+package com.ionut.easydriverentals.models.enums;
 
 public enum CarStatus {
     AVAILABLE,

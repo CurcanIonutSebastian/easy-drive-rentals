@@ -1,6 +1,6 @@
 package com.ionut.easydriverentals.models.entities;
 
-import com.ionut.easydriverentals.enums.CarStatus;
+import com.ionut.easydriverentals.models.enums.CarStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
