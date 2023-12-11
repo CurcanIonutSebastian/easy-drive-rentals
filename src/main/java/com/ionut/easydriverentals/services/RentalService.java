@@ -10,4 +10,6 @@ public interface RentalService {
     RentalResponseDTO createRental(Long clientId, Long carId, RentalDTO rentalDTO);
 
     List<RentalResponseDTO> getAllRentals();
+
+    String returnCarByRentalId(Long id);
 }

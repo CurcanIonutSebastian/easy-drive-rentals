@@ -30,4 +30,9 @@ public class RentalController {
     public ResponseEntity<List<RentalResponseDTO>> getAllRentals() {
         return ResponseEntity.ok(rentalService.getAllRentals());
     }
+
+    @DeleteMapping
+    public ResponseEntity<String> returnCarByRentalId(@PathVariable Long id) {
+        return ResponseEntity.ok(rentalService.returnCarByRentalId(id));
+    }
 }

@@ -83,6 +83,14 @@ public class RentalServiceImpl implements RentalService {
         return rentals.stream().map(this::matRentalToRentalResponseDTO).toList();
     }
 
+    @Override
+    public String returnCarByRentalId(Long id) {
+        Rental rental = rentalRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Rental does not exist!"));
+        Client client = clientRepository.findById(rental.getClient().getId()).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        Car car = carRepository.findById(rental.getCar().getId()).orElseThrow(() -> new DataNotFoundException("Car does not exist!"));
+        return null;
+    }
+
     private RentalResponseDTO matRentalToRentalResponseDTO(Rental rental) {
         return RentalResponseDTO.builder()
                 .id(rental.getId())
