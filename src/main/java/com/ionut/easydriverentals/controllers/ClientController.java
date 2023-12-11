@@ -1,8 +1,6 @@
 package com.ionut.easydriverentals.controllers;
 
-import com.ionut.easydriverentals.models.dtos.ClientDTO;
-import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
-import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
+import com.ionut.easydriverentals.models.dtos.*;
 import com.ionut.easydriverentals.services.ClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +23,20 @@ public class ClientController {
         return ResponseEntity.ok(clientService.createClient(clientDTO));
     }
 
+    @PostMapping("/{clientId}/favorite-cars")
+    public ResponseEntity<String> addFavoriteCar(@PathVariable Long clientId,
+                                                 @RequestBody ClientFavoriteCarDTO clientFavoriteCarDTO) {
+        return ResponseEntity.ok(clientService.addFavoriteCar(clientId, clientFavoriteCarDTO));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id) {
         return ResponseEntity.ok(clientService.getClientById(id));
+    }
+
+    @GetMapping("/{id}/favorite-cars")
+    public ResponseEntity<ClientWithFavoritesDTO> getClientWithFavorites(@PathVariable Long id) {
+        return ResponseEntity.ok(clientService.getClientWithFavorites(id));
     }
 
     @GetMapping

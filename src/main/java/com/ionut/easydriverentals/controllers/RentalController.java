@@ -31,7 +31,7 @@ public class RentalController {
         return ResponseEntity.ok(rentalService.getAllRentals());
     }
 
-    @DeleteMapping
+    @PatchMapping("/{id}")
     public ResponseEntity<String> returnCarByRentalId(@PathVariable Long id) {
         return ResponseEntity.ok(rentalService.returnCarByRentalId(id));
     }

@@ -38,9 +38,6 @@ public class Car {
     @OneToOne(mappedBy = "car")
     private Rental rental;
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<History> histories;
-
     @ManyToMany(mappedBy = "clientFavoriteCars")
     private List<Client> clientsWithFavorite = new ArrayList<>();
 }

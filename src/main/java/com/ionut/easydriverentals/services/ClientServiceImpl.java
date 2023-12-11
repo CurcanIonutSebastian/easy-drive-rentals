@@ -3,13 +3,12 @@ package com.ionut.easydriverentals.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ionut.easydriverentals.exceptions.DataExistsException;
 import com.ionut.easydriverentals.exceptions.DataNotFoundException;
-import com.ionut.easydriverentals.models.dtos.ClientDTO;
-import com.ionut.easydriverentals.models.dtos.ClientDetailsDTO;
-import com.ionut.easydriverentals.models.dtos.HistoryClientResponseDTO;
-import com.ionut.easydriverentals.models.dtos.UpdateClientDTO;
+import com.ionut.easydriverentals.models.dtos.*;
+import com.ionut.easydriverentals.models.entities.Car;
 import com.ionut.easydriverentals.models.entities.Client;
 import com.ionut.easydriverentals.models.entities.ClientDetails;
-import com.ionut.easydriverentals.models.entities.History;
+import com.ionut.easydriverentals.models.entities.Rental;
+import com.ionut.easydriverentals.repositories.CarRepository;
 import com.ionut.easydriverentals.repositories.ClientDetailsRepository;
 import com.ionut.easydriverentals.repositories.ClientRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,7 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientDetailsRepository clientDetailsRepository;
+    private final CarRepository carRepository;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -102,22 +102,42 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public List<HistoryClientResponseDTO> getAllHistoryByClientId(Long id) {
         return clientRepository.findById(id)
-                .map(client -> client.getHistories().stream()
+                .map(client -> client.getRentals().stream()
                         .map(this::mapToHistoryClientResponseDTO)
                         .collect(Collectors.toList()))
                 .orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
     }
 
-    private HistoryClientResponseDTO mapToHistoryClientResponseDTO(History history) {
+    private HistoryClientResponseDTO mapToHistoryClientResponseDTO(Rental rental) {
         return HistoryClientResponseDTO.builder()
-                .id(history.getId())
-                .carId(history.getCar().getId())
-                .startRentalDate(history.getStartRentalDate())
-                .endRentalDate(history.getEndRentalDate())
-                .returnedCar(history.getReturnedCar())
-                .userHistoryStatus(history.getUserHistoryStatus())
-                .totalPrice(history.getTotalPrice())
+                .id(rental.getId())
+                .carId(rental.getCarId())
+                .startRentalDate(rental.getStartRentalDate())
+                .endRentalDate(rental.getEndRentalDate())
+                .returnedCar(rental.getReturnedCar())
+                .userHistoryStatus(rental.getUserHistoryStatus())
+                .totalPrice(rental.getTotalPrice())
                 .build();
+    }
+
+    @Override
+    public String addFavoriteCar(Long clientId, ClientFavoriteCarDTO clientFavoriteCarDTO) {
+        Client client = clientRepository.findById(clientId).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        Car car = carRepository.findById(clientFavoriteCarDTO.getCarId()).orElseThrow(() -> new DataNotFoundException("Car does not exist!"));
+
+        client.getClientFavoriteCars().add(car);
+        car.getClientsWithFavorite().add(client);
+
+        clientRepository.save(client);
+        carRepository.save(car);
+
+        return "Car was added to favorite!";
+    }
+
+    @Override
+    public ClientWithFavoritesDTO getClientWithFavorites(Long id) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        return mapClientToClientWithFavoritesDTO(client);
     }
 
     private static ClientDetails updateClientDetails(UpdateClientDTO newClientDTO, Client client) {
@@ -187,5 +207,29 @@ public class ClientServiceImpl implements ClientService {
                     .floor(client.getClientDetails().getFloor())
                     .apartment(client.getClientDetails().getApartment()).build();
         }
+
+    }
+
+    private ClientWithFavoritesDTO mapClientToClientWithFavoritesDTO(Client client) {
+        return ClientWithFavoritesDTO.builder()
+                .id(client.getId())
+                .firstName(client.getFirstName())
+                .lastName(client.getLastName())
+                .favoriteCars(client.getClientFavoriteCars()
+                        .stream()
+                        .map(this::mapCarToCarDTO)
+                        .toList())
+                .build();
+    }
+
+    private CarDTO mapCarToCarDTO(Car car) {
+        return CarDTO.builder()
+                .id(car.getId())
+                .brand(car.getBrand())
+                .model(car.getModel())
+                .capacity(car.getCapacity())
+                .productYear(car.getProductYear())
+                .carStatus(car.getCarStatus())
+                .pricePerDay(car.getPricePerDay()).build();
     }
 }
