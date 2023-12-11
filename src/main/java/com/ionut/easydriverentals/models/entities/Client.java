@@ -25,11 +25,8 @@ public class Client {
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ClientDetails clientDetails;
 
-    @OneToOne(mappedBy = "client")
-    private Rental rental;
-
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<History> histories;
+    @OneToMany(mappedBy = "client")
+    private List<Rental> rentals;
 
     @ManyToMany
     @JoinTable(

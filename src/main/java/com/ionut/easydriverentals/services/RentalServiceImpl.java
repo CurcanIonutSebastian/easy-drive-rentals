@@ -6,11 +6,10 @@ import com.ionut.easydriverentals.models.dtos.RentalDTO;
 import com.ionut.easydriverentals.models.dtos.RentalResponseDTO;
 import com.ionut.easydriverentals.models.entities.Car;
 import com.ionut.easydriverentals.models.entities.Client;
-import com.ionut.easydriverentals.models.entities.History;
 import com.ionut.easydriverentals.models.entities.Rental;
+import com.ionut.easydriverentals.models.enums.UserHistoryStatus;
 import com.ionut.easydriverentals.repositories.CarRepository;
 import com.ionut.easydriverentals.repositories.ClientRepository;
-import com.ionut.easydriverentals.repositories.HistoryRepository;
 import com.ionut.easydriverentals.repositories.RentalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import java.util.Optional;
 public class RentalServiceImpl implements RentalService {
 
     private final RentalRepository rentalRepository;
-    private final HistoryRepository historyRepository;
     private final ClientRepository clientRepository;
     private final CarRepository carRepository;
 
@@ -39,7 +37,6 @@ public class RentalServiceImpl implements RentalService {
 
         rentalDTO.setStartRentalDate(LocalDate.now());
         Car carEntity = carOptional.get();
-        Client clientEntity = clientOptional.get();
         if (rentalDTO.getRentalDays() != 0) {
             rentalDTO.setTotalPrice(carEntity.getPricePerDay() * rentalDTO.getRentalDays());
         } else {
@@ -51,21 +48,13 @@ public class RentalServiceImpl implements RentalService {
         rentalEntity.setStartRentalDate(rentalDTO.getStartRentalDate());
         rentalEntity.setEndRentalDate(rentalDTO.getStartRentalDate().plusDays(rentalDTO.getRentalDays()));
         rentalEntity.setTotalPrice(rentalDTO.getTotalPrice());
+        rentalEntity.setCarId(carEntity.getId());
 
         rentalRepository.save(rentalEntity);
         rentalRepository.assignClientAndCarIdToRental(clientId, carId);
 
         carEntity.setCarStatus(CarStatus.RENTED);
         carRepository.save(carEntity);
-
-        History historyEntity = new History();
-        historyEntity.setStartRentalDate(rentalEntity.getStartRentalDate());
-        historyEntity.setEndRentalDate(rentalEntity.getEndRentalDate());
-        historyEntity.setTotalPrice(rentalEntity.getTotalPrice());
-        historyEntity.setCar(carEntity);
-        historyEntity.setClient(clientEntity);
-
-        historyRepository.save(historyEntity);
 
         return RentalResponseDTO.builder()
                 .id(rentalEntity.getId())
@@ -80,7 +69,29 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public List<RentalResponseDTO> getAllRentals() {
         List<Rental> rentals = rentalRepository.findAll();
-        return rentals.stream().map(this::matRentalToRentalResponseDTO).toList();
+        return rentals.stream()
+                .filter(rental -> rental.getCar() != null)
+                .map(this::matRentalToRentalResponseDTO).toList();
+    }
+
+    @Override
+    public String returnCarByRentalId(Long id) {
+        Rental rental = rentalRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Rental does not exist!"));
+        Car car = carRepository.findById(rental.getCarId()).orElseThrow(() -> new DataNotFoundException("Car does not exist!"));
+        rental.setReturnedCar(LocalDate.now());
+        rental.setCar(null);
+        car.setCarStatus(CarStatus.AVAILABLE);
+
+        int compareResult = rental.getReturnedCar().compareTo(rental.getEndRentalDate());
+        if (compareResult <= 0) {
+            rental.setUserHistoryStatus(UserHistoryStatus.AT_TIME);
+        } else {
+            rental.setUserHistoryStatus(UserHistoryStatus.DELAY);
+        }
+
+        carRepository.save(car);
+        rentalRepository.save(rental);
+        return "The car was returned!";
     }
 
     private RentalResponseDTO matRentalToRentalResponseDTO(Rental rental) {
