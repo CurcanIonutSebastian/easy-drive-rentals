@@ -1,8 +1,9 @@
 package com.ionut.easydriverentals.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ionut.easydriverentals.exceptions.DataExistsException;
-import com.ionut.easydriverentals.exceptions.DataNotFoundException;
+import com.ionut.easydriverentals.exceptions.CarNotFoundException;
+import com.ionut.easydriverentals.exceptions.EmailOrPhoneExistsException;
+import com.ionut.easydriverentals.exceptions.ClientNotFoundException;
 import com.ionut.easydriverentals.models.dtos.*;
 import com.ionut.easydriverentals.models.entities.Car;
 import com.ionut.easydriverentals.models.entities.Client;
@@ -53,7 +54,7 @@ public class ClientServiceImpl implements ClientService {
                             .build())
                     .build();
         } catch (DataIntegrityViolationException exception) {
-            throw new DataExistsException("Invalid email ore phone number!");
+            throw new EmailOrPhoneExistsException("Invalid email ore phone number!");
         }
     }
 
@@ -61,7 +62,7 @@ public class ClientServiceImpl implements ClientService {
     public ClientDTO getClientById(Long id) {
         Optional<Client> clientOptional = clientRepository.findById(id);
         if (clientOptional.isEmpty()) {
-            throw new DataNotFoundException("Client does not exist!");
+            throw new ClientNotFoundException("Client does not exist!");
         }
 
         Client client = clientOptional.get();
@@ -76,7 +77,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDTO editClientById(Long id, UpdateClientDTO updateClientDTO) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
         try {
             client.setFirstName(updateClientDTO.getFirstName() != null ? updateClientDTO.getFirstName() : client.getFirstName());
             client.setLastName(updateClientDTO.getLastName() != null ? updateClientDTO.getLastName() : client.getLastName());
@@ -85,7 +86,7 @@ public class ClientServiceImpl implements ClientService {
             clientRepository.save(client);
             return mapClientToClientDTO(client);
         } catch (DataIntegrityViolationException e) {
-            throw new DataExistsException("Invalid email ore phone number!");
+            throw new EmailOrPhoneExistsException("Invalid email ore phone number!");
         }
     }
 
@@ -95,7 +96,7 @@ public class ClientServiceImpl implements ClientService {
             clientRepository.deleteById(id);
             return "Client deleted successfully!";
         } else {
-            throw new DataNotFoundException("Client does not exist!");
+            throw new ClientNotFoundException("Client does not exist!");
         }
     }
 
@@ -105,7 +106,7 @@ public class ClientServiceImpl implements ClientService {
                 .map(client -> client.getRentals().stream()
                         .map(this::mapToHistoryClientResponseDTO)
                         .collect(Collectors.toList()))
-                .orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+                .orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
     }
 
     private HistoryClientResponseDTO mapToHistoryClientResponseDTO(Rental rental) {
@@ -122,8 +123,8 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public String addFavoriteCar(Long clientId, ClientFavoriteCarDTO clientFavoriteCarDTO) {
-        Client client = clientRepository.findById(clientId).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
-        Car car = carRepository.findById(clientFavoriteCarDTO.getCarId()).orElseThrow(() -> new DataNotFoundException("Car does not exist!"));
+        Client client = clientRepository.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
+        Car car = carRepository.findById(clientFavoriteCarDTO.getCarId()).orElseThrow(() -> new CarNotFoundException("Car does not exist!"));
 
         client.getClientFavoriteCars().add(car);
         car.getClientsWithFavorite().add(client);
@@ -136,7 +137,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientWithFavoritesDTO getClientWithFavorites(Long id) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Client does not exist!"));
+        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
         return mapClientToClientWithFavoritesDTO(client);
     }
 
