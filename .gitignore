@@ -6,10 +6,15 @@ target/
 out/production
 
 ### IntelliJ IDEA ###
-.idea/
+.idea
 *.iws
 *.iml
 *.ipr
+*.mvn
+HELP.md
+connect.iml
+mvnw.cmd
+mvnw
 
 ### STS ###
 .apt_generated

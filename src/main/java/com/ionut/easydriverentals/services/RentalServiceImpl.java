@@ -1,11 +1,12 @@
 package com.ionut.easydriverentals.services;
 
+import com.ionut.easydriverentals.exceptions.CarNotFoundException;
+import com.ionut.easydriverentals.exceptions.RentalNotFoundException;
 import com.ionut.easydriverentals.models.enums.CarStatus;
-import com.ionut.easydriverentals.exceptions.DataNotFoundException;
+import com.ionut.easydriverentals.exceptions.ClientNotFoundException;
 import com.ionut.easydriverentals.models.dtos.RentalDTO;
 import com.ionut.easydriverentals.models.dtos.RentalResponseDTO;
 import com.ionut.easydriverentals.models.entities.Car;
-import com.ionut.easydriverentals.models.entities.Client;
 import com.ionut.easydriverentals.models.entities.Rental;
 import com.ionut.easydriverentals.models.enums.UserHistoryStatus;
 import com.ionut.easydriverentals.repositories.CarRepository;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +29,10 @@ public class RentalServiceImpl implements RentalService {
 
     @Override
     public RentalResponseDTO createRental(Long clientId, Long carId, RentalDTO rentalDTO) {
-        Optional<Client> clientOptional = clientRepository.findById(clientId);
-        Optional<Car> carOptional = carRepository.findById(carId);
-        if (clientOptional.isEmpty() || carOptional.isEmpty()) {
-            throw new DataNotFoundException("Invalid client or car id!");
-        }
+        clientRepository.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
+        Car carEntity = carRepository.findById(carId).orElseThrow(() -> new CarNotFoundException("Car does not exist!"));
 
         rentalDTO.setStartRentalDate(LocalDate.now());
-        Car carEntity = carOptional.get();
         if (rentalDTO.getRentalDays() != 0) {
             rentalDTO.setTotalPrice(carEntity.getPricePerDay() * rentalDTO.getRentalDays());
         } else {
@@ -71,13 +67,14 @@ public class RentalServiceImpl implements RentalService {
         List<Rental> rentals = rentalRepository.findAll();
         return rentals.stream()
                 .filter(rental -> rental.getCar() != null)
-                .map(this::matRentalToRentalResponseDTO).toList();
+                .map(this::matRentalToRentalResponseDTO)
+                .toList();
     }
 
     @Override
     public String returnCarByRentalId(Long id) {
-        Rental rental = rentalRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Rental does not exist!"));
-        Car car = carRepository.findById(rental.getCarId()).orElseThrow(() -> new DataNotFoundException("Car does not exist!"));
+        Rental rental = rentalRepository.findById(id).orElseThrow(() -> new RentalNotFoundException("Rental does not exist!"));
+        Car car = carRepository.findById(rental.getCarId()).orElseThrow(() -> new CarNotFoundException("Car does not exist!"));
         rental.setReturnedCar(LocalDate.now());
         rental.setCar(null);
         car.setCarStatus(CarStatus.AVAILABLE);
