@@ -1,6 +1,6 @@
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper
 !**/src/main/**/target/
 !**/src/test/**/target/
 out/production
@@ -12,7 +12,6 @@ out/production
 *.ipr
 *.mvn
 HELP.md
-connect.iml
 mvnw.cmd
 mvnw
 
