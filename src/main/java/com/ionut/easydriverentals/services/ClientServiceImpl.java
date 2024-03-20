@@ -17,7 +17,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,27 +31,14 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDTO createClient(ClientDTO clientDTO) {
         try {
-            Client clientEntity = clientRepository.save(objectMapper.convertValue(clientDTO, Client.class));
-            ClientDetails clientDetailsEntity = clientDetailsRepository.save(objectMapper.convertValue(clientDTO.getClientDetailsDTO(), ClientDetails.class));
-            clientDetailsRepository.assignClientDetailsToClient(clientEntity.getId());
+            Client clientEntity = objectMapper.convertValue(clientDTO, Client.class);
+            ClientDetails clientDetailsEntity = objectMapper.convertValue(clientDTO.getClientDetailsDTO(), ClientDetails.class);
+            clientDetailsEntity.setClient(clientEntity);
+            clientDetailsRepository.save(clientDetailsEntity);
+            clientRepository.save(clientEntity);
 
-            return ClientDTO.builder()
-                    .id(clientEntity.getId())
-                    .firstName(clientEntity.getFirstName())
-                    .lastName(clientEntity.getLastName())
-                    .clientDetailsDTO(ClientDetailsDTO.builder()
-                            .id(clientDetailsEntity.getId())
-                            .email(clientDetailsEntity.getEmail())
-                            .phoneNumber(clientDetailsEntity.getPhoneNumber())
-                            .country(clientDetailsEntity.getCountry())
-                            .city(clientDetailsEntity.getCity())
-                            .street(clientDetailsEntity.getStreet())
-                            .block(clientDetailsEntity.getBlock())
-                            .apartment(clientDetailsEntity.getApartment())
-                            .stair(clientDetailsEntity.getStair())
-                            .floor(clientDetailsEntity.getFloor())
-                            .build())
-                    .build();
+            clientEntity.setClientDetails(clientDetailsEntity);
+            return mapClientToClientDTO(clientEntity);
         } catch (DataIntegrityViolationException exception) {
             throw new EmailOrPhoneExistsException("Invalid email ore phone number!");
         }
@@ -60,13 +46,8 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDTO getClientById(Long id) {
-        Optional<Client> clientOptional = clientRepository.findById(id);
-        if (clientOptional.isEmpty()) {
-            throw new ClientNotFoundException("Client does not exist!");
-        }
-
-        Client client = clientOptional.get();
-        return mapClientToClientDTO(client);
+        Client clientEntity = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
+        return mapClientToClientDTO(clientEntity);
     }
 
     @Override
@@ -109,18 +90,6 @@ public class ClientServiceImpl implements ClientService {
                 .orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
     }
 
-    private HistoryClientResponseDTO mapToHistoryClientResponseDTO(Rental rental) {
-        return HistoryClientResponseDTO.builder()
-                .id(rental.getId())
-                .carId(rental.getCarId())
-                .startRentalDate(rental.getStartRentalDate())
-                .endRentalDate(rental.getEndRentalDate())
-                .returnedCar(rental.getReturnedCar())
-                .userHistoryStatus(rental.getUserHistoryStatus())
-                .totalPrice(rental.getTotalPrice())
-                .build();
-    }
-
     @Override
     public String addFavoriteCar(Long clientId, ClientFavoriteCarDTO clientFavoriteCarDTO) {
         Client client = clientRepository.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
@@ -139,6 +108,18 @@ public class ClientServiceImpl implements ClientService {
     public ClientWithFavoritesDTO getClientWithFavorites(Long id) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException("Client does not exist!"));
         return mapClientToClientWithFavoritesDTO(client);
+    }
+
+    private HistoryClientResponseDTO mapToHistoryClientResponseDTO(Rental rental) {
+        return HistoryClientResponseDTO.builder()
+                .id(rental.getId())
+                .carId(rental.getCarId())
+                .startRentalDate(rental.getStartRentalDate())
+                .endRentalDate(rental.getEndRentalDate())
+                .returnedCar(rental.getReturnedCar())
+                .userHistoryStatus(rental.getUserHistoryStatus())
+                .totalPrice(rental.getTotalPrice())
+                .build();
     }
 
     private static ClientDetails updateClientDetails(UpdateClientDTO newClientDTO, Client client) {
