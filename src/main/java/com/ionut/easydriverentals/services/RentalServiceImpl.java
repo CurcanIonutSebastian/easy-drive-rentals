@@ -52,14 +52,7 @@ public class RentalServiceImpl implements RentalService {
         carEntity.setCarStatus(CarStatus.RENTED);
         carRepository.save(carEntity);
 
-        return RentalResponseDTO.builder()
-                .id(rentalEntity.getId())
-                .startRentalDate(rentalEntity.getStartRentalDate())
-                .endRentalDate(rentalEntity.getEndRentalDate())
-                .totalPrice(rentalEntity.getTotalPrice())
-                .clientId(clientId)
-                .carId(carId)
-                .build();
+        return mapRentalToRentalResponseDTO(rentalEntity);
     }
 
     @Override
@@ -67,7 +60,7 @@ public class RentalServiceImpl implements RentalService {
         List<Rental> rentals = rentalRepository.findAll();
         return rentals.stream()
                 .filter(rental -> rental.getCar() != null)
-                .map(this::matRentalToRentalResponseDTO)
+                .map(this::mapRentalToRentalResponseDTO)
                 .toList();
     }
 
@@ -75,6 +68,7 @@ public class RentalServiceImpl implements RentalService {
     public String returnCarByRentalId(Long id) {
         Rental rental = rentalRepository.findById(id).orElseThrow(() -> new RentalNotFoundException("Rental does not exist!"));
         Car car = carRepository.findById(rental.getCarId()).orElseThrow(() -> new CarNotFoundException("Car does not exist!"));
+
         rental.setReturnedCar(LocalDate.now());
         rental.setCar(null);
         car.setCarStatus(CarStatus.AVAILABLE);
@@ -91,7 +85,7 @@ public class RentalServiceImpl implements RentalService {
         return "The car was returned!";
     }
 
-    private RentalResponseDTO matRentalToRentalResponseDTO(Rental rental) {
+    private RentalResponseDTO mapRentalToRentalResponseDTO(Rental rental) {
         return RentalResponseDTO.builder()
                 .id(rental.getId())
                 .startRentalDate(rental.getStartRentalDate())
